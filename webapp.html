@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Covid Analysis</title>
+    <script src="https://d3js.org/d3.v4.js"></script>
+<body style="background-color:lightblue";
+</body>
+
+
+<style>
+    #dotChart button:active{
+        background-color:blue;
+    }
+
+    .button {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 16px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        transition-duration: 0.4s;
+        cursor: pointer;
+    }
+
+
+    .button5 {
+        background-color: white;
+        color: black;
+        border: 2px solid #555555;
+    }
+
+    .button5:hover {
+        background-color: #555555;
+        color: white;
+    }
+
+    body {
+        font-family: 'Open Sans', sans-serif;
+    }
+
+    div#layout {
+        text-align: left;
+    }
+
+    div#container {
+        width: 1000px;
+        height: 600px;
+        background-color: whitesmoke;
+    }
+
+   svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .bar {
+        fill: lightskyblue;
+    }
+
+    text {
+        font-size: 12px;
+        fill: black;
+    }
+
+    path {
+        stroke: gray;
+    }
+
+    line {
+        stroke: gray;
+    }
+
+    line#limit {
+        stroke: black;
+        stroke-width: 3;
+        stroke-dasharray: 3 6;
+    }
+
+    text.divergence {
+        font-size: 14px;
+        fill: #2F4A6D;
+    }
+
+    text.value {
+        font-size: 14px;
+    }
+
+    text.title {
+        font-size: 22px;
+        font-weight: 600;
+    }
+
+    text.label {
+        font-size: 14px;
+        font-weight: 400;
+    }
+
+    text.source {
+        font-size: 10px;
+    }
+
+    #dotChart text{
+        fill: black;
+    }
+
+    #dotChart svg{
+        height:500px;
+    }
+
+    p{
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    h1{
+        text-align: center;
+        background-color: black;
+        width: 100%;
+        color: white;
+        padding: 5px 0;
+    }
+
+    p b{
+        font-size: 25px;
+    }
+
+
+
+</style>
+<link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+</head>
+<body>
+
+<h1 >Covid-19 Data Visualisation and Analysis</h1>
+
+<div id="dotChart">
+
+    <!-- Add 2 buttons -->
+    <button class="button button5" onclick="update('case fatality rate (in %)')">Covid-19 Case Fatality Rate  </button>&nbsp;&nbsp;&nbsp;
+    <rect style="fill: black; stroke-width: 0.6; opacity: 0.6;"></rect>
+    <button class="button button5" onclick="update('Confirmed Covid-19 cases')">Covid-19 cases</button>&nbsp;&nbsp;&nbsp;
+    <button class="button button5" onclick="update('Confirmed Covid-19 deaths')">Covid-19 deaths</button>&nbsp;&nbsp;&nbsp;
+    <div id="D3_visualisation"></div>
+</div>
+<p> <b>What does this visualisation show?</b>   <br/><br/>
+
+    This visualisation is a lollipop chart that aims to showcase Covid-19 disease severity for countries situated in Europe. To measure this factor, case fatality rates (CFR) for each country was calculated for the period of 31st December 2019 to 14th December 2020. The case-fatality rate, also known as case fatality risk, is a ratio often expressed as a percentage. Covid-19 CFR can be calculated by dividing the confirmed number of deaths due to Covid-19 by the total confirmed number of people diagnosed with Covid-19 (cases), which can then be multiplied by 100 to obtain a percentage. CFR for Covid-19 can be used as a measure to assess the impact of interventions of a country as well as the quality of their treatments and healthcare responses regarding Covid-19. From this visualisation it is vivid that Isle of Man, Guernsey, Italy, United Kingdom and Bosnia &Herzegovina are among the top 5 countries with the highest Covid-19 case fatality rates whereas Faroe Island, Holy see, Monaco, Gibraltar, and Iceland are 5 countries with the lowest Covid-19 case fatality rate. This visualisation also shows data for two more attributes namely confirmed covid-19 cases and confirmed covid-19 deaths for each country in Europe. From the visualisation, one can see that Russia has the highest number of confirmed covid-19 cases with 265,392,8 people diagnosed with the disease whereas Holy See has the lowest number of confirmed covid-19 cases with only 26 cases. However, Italy, United Kingdom, Spain, and Russia are the countries with the highest number of confirmed Covid-19 deaths.  <br> <br/><br/>
+
+    <b>What are the datasets used to produce this visualisation.</b> <br/><br/>
+    The dataset used for this visualisation was by the European Centre for Disease Prevention and Control (ECDC). It is a historical Covid-19 dataset <a href=" https://www.ecdc.europa.eu/en/publications-data/download-todays-data-geographic-distribution-covid-19-cases-worldwide"> (Source Link)</a>
+    consisting of information about the daily number of new reported Covid-19 cases and deaths up to the 14th of December 2020 for all the countries in the world.
+
+    This dataset was pre-processed to plot the above visualisation. The pre-processed data can be found in the submission folder under the name Europe_CFR.csv. A detailed description of the data pre-processing can be found in the report.
+    <br> <br/><br/>
+
+    <b>What are the user interaction aspect of this visualisation:</b> <br/><br/>
+
+    This plot enables a user to view and assess three different types of attributes which are Covid-19 case fatality rates, confirmed number cases and confirmed number of deaths. To inspect these attributes a user can click on the relevant button which appears on the top of the visualisation to plot the attribute of choice. To further inspect the chosen attribute concerning a country, a user can either refer to the provided vertical axis or hover over the circle to view an exact figure for the Covid-19 case fatality rate, number of cases or number of deaths for a particular country.
+    <br/><br/><br/><br/><b> A related visualisation:
+</p>
+
+
+
+
+<script>
+
+
+    // setting the dimensions and margins of the visualisation
+    var margin = {top: 100, right: 100, bottom: 100, left: 100},
+        width = 1200 - margin.left - margin.right,
+        height = 450 - margin.top - margin.bottom;
+
+    // appending the svg object to the body of the page
+    var svg = d3.select("#D3_visualisation")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .style("background","white")
+        .style("padding-right","")
+        .append("g")
+        .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
+    // Initializing the X axis
+    var x = d3.scaleBand()
+        .range([ 0, width+200 ])
+        .padding(1);
+    var xAxis = svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+
+    // Initializing the Y axis
+    var y = d3.scaleLinear()
+        .range([ height, 0]);
+    var yAxis = svg.append("g")
+        .attr("class", "myYaxis")
+
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x",0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("")
+        .attr("class","yAxisLabel");
+
+
+    var left = x;
+
+    var tooltip = d3.select("body")
+        .append("div")
+        .style("position", "absolute")
+        .style("z-index", "10")
+        .style("visibility", "hidden")
+        .style("background", "#fff")
+        .text("a simple tooltip");
+
+
+    // This function is to update the plot for a given variable:
+    function update(selectedVar) {
+
+        // Parsing the data
+        d3.csv("Europe_CFR.csv", function(data) {
+
+            // The X axis
+            x.domain(data.map(function(d) { return d.countriesAndTerritories; }))
+            xAxis.transition().duration(1000).call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+
+
+            // The Y axis
+            y.domain([0, d3.max(data, function(d) { return +d[selectedVar]+3.5 }) ]);
+            yAxis.transition().duration(1000).call(d3.axisLeft(y).ticks(15));
+
+            d3.select(".yAxisLabel").text(selectedVar)
+
+
+
+
+            //mapping data to  circle
+            var j = svg.selectAll(".myLine")
+                .data(data)
+            // update lines
+            j
+                .enter()
+                .append("line")
+                .attr("class", "myLine")
+                .merge(j)
+                .transition()
+                .duration(1000)
+                .attr("x1", function(d) { console.log(x(d.countriesAndTerritories)) ; return x(d.countriesAndTerritories); })
+                .attr("x2", function(d) { return x(d.countriesAndTerritories); })
+                .attr("y1", y(0))
+                .attr("y2", function(d) { return y(d[selectedVar]); })
+                .attr("stroke", "black")
+
+
+            // mapping data to existing circle: for Mouse Hover effect
+            var u = svg.selectAll("circle")
+                .data(data)
+            // updating the bars
+            u
+                .enter()
+                .append("circle")
+                .merge(u)
+                .on("mouseover", function(d){tooltip.text(selectedVar+": "+  d[selectedVar]); return tooltip.style("visibility", "visible");})
+                .on("mousemove", function(){return tooltip.style("top", (d3.event.pageY-30)+"px").style("left",(d3.event.pageX)+"px");})
+                .on("mouseout", function(){return tooltip.style("visibility", "hidden");})
+                .transition()
+                .duration(1000)
+                .attr("cx", function(d) { return x(d.countriesAndTerritories); })
+                .attr("cy", function(d) { return y(d[selectedVar]); })
+                .attr("r", 5)
+                .attr("fill", "blue");
+
+
+        })
+
+    }
+
+    // Initializing visualisation 1: Lollipop plot
+    update('case fatality rate (in %)')
+
+
+
+    svg.append("text")
+        .attr("transform",
+            "translate(" + (width/1.8) + " ," +
+            (height + margin.top + 10) + ")")
+        .style("text-anchor", "middle")
+        .style("font-size", "16px")
+        .text("Country");
+
+
+
+    svg.append('text')
+        .attr('y',-60)
+        .attr('x',150)
+        .style("font-size", "25px")
+        .style('font-family', '"Open Sans", sans-serif')
+        .style('font-weight', '10000')
+        .style("fill", d3.color("black") )
+        .style("text-decoration", "underline")
+        .text('Covid-19 case fatality rate, cases and deaths per country in Europe, 2019-2020')
+
+
+</script>
+
+
+<div id="layout">
+    <div id="container">
+        <svg><g></g></svg>
+    </div>
+</div>
+
+<p> <b>What does this visualisation show?</b>   <br/><br/>
+    This visualisation is a bar plot that shows the Covid-19 Case fatality rates for the continents in the world. This visualisation aims to show how affected Europe was from the Covid-19 pandemic until 14 December 2020 in comparison to other continents. The case Fatality rate was again used as an indicator to assess the disease severity. This bar chart shows that Europe’s Covid-19 case fatality rate was 2.24% up until 14 December 2020 which is 0.1% less than Africa’s CPR rate and 0.3% less than America’s CPR rate. However, Europe’s CPR rate is 0.5% greater than Asia’s CPR rate. From this visualisation, we can conclude that Europe was the third most affected continent from Covid-19 up until 14th December 2020.   <br><br/><br/>
+    <b>What are the datasets used to produce this visualisation.</b> <br/><br/>
+    The dataset used for this visualisation was the historical Covid-19 dataset provided by the European Centre for Disease Prevention and Control (ECDC). To plot this bar chart, I pre-processed the ECDC dataset.
+    The pre-processed data can be found in the submission folder under the name Continent_CFR.csv. A detailed description of the data pre-processing can be found in the report.
+    <br><br/><br/>
+    <b>What are the user interaction aspect of this visualisation:</b> <br/><br/>
+    This visualisation enables a user to hover over a bar column and check the divergence between bar values. Upon hover, a horizontal line is plotted on top of the chosen bar, this calculates the difference in bar value from the chosen bar and the value of any other bars present in the chart. This feature enables fast and easy comparison between categories i.e., continents in this visualisation.
+
+</p>
+
+
+<script>
+    function barGraph() {
+        const sample = [
+            {
+                continentExp: 'America',
+                case_fatality_rate: 2.54,
+            },
+            {
+                continentExp: 'Africa',
+                case_fatality_rate: 2.37,
+            },
+            {
+                continentExp: 'Europe',
+                case_fatality_rate: 2.24,
+            },
+            {
+                continentExp: 'Oceania',
+                case_fatality_rate: 2.16,
+            },
+            {
+                continentExp: 'Asia',
+                case_fatality_rate: 1.73,
+            },
+            {
+                continentExp: 'Other',
+                case_fatality_rate: 1.01,
+            }
+
+        ];
+
+        const svg = d3.select('#container svg');
+        const svgContainer = d3.select('#container');
+
+        const margin = 80;
+        const width = 1000 - 2 * margin;
+        const height = 600 - 2 * margin;
+
+        const chart = svg.append('g')
+            .attr('transform', `translate(${margin}, ${margin})`);
+
+        const xScale = d3.scaleBand()
+            .range([0, width])
+            .domain(sample.map((s) => s.continentExp))
+            .padding(0.4)
+
+        const yScale = d3.scaleLinear()
+            .range([height, 0])
+            .domain([0, 10]);
+
+        const makeYLines = () => d3.axisLeft()
+            .scale(yScale)
+
+        chart.append('g')
+            .attr('transform', `translate(0, ${height})`)
+            .call(d3.axisBottom(xScale));
+
+        chart.append('g')
+            .call(d3.axisLeft(yScale));
+
+        const barGroups = chart.selectAll()
+            .data(sample)
+            .enter()
+            .append('g')
+
+        barGroups
+            .append('rect')
+            .attr('class', 'bar')
+            .attr('x', (g) => xScale(g.continentExp))
+            .attr('y', (g) => yScale(g.case_fatality_rate))
+            .attr('height', (g) => height - yScale(g.case_fatality_rate))
+            .attr('width', xScale.bandwidth())
+            .on('mouseenter', function (actual, i) {
+                d3.selectAll('.case_fatality_rate')
+                    .attr('opacity', 0)
+
+                d3.select(this)
+                    .transition()
+                    .duration(300)
+                    .attr('opacity', 0.6)
+                    .attr('x', (a) => xScale(a.continentExp) - 5)
+                    .attr('width', xScale.bandwidth() + 10)
+
+                const y = yScale(actual.case_fatality_rate)
+
+                line = chart.append('line')
+                    .attr('id', 'limit')
+                    .attr('x1', 0)
+                    .attr('y1', y)
+                    .attr('x2', width)
+                    .attr('y2', y)
+
+                barGroups.append('text')
+                    .attr('class', 'divergence')
+                    .attr('x', (a) => xScale(a.continentExp) + xScale.bandwidth() / 2)
+                    .attr('y', (a) => yScale(a.case_fatality_rate) + 30)
+                    .attr('fill', 'black')
+                    .attr('text-anchor', 'middle')
+                    .text((a, idx) => {
+                        const divergence = (a.case_fatality_rate - actual.case_fatality_rate).toFixed(1)
+
+                        let text = ''
+                        if (divergence > 0) text += '+'
+                        text += `${divergence}%`
+
+                        return idx !== i ? text : '';
+                    })
+
+            })
+            .on('mouseleave', function () {
+                d3.selectAll('.case_fatality_rate')
+                    .attr('opacity', 1)
+
+                d3.select(this)
+                    .transition()
+                    .duration(300)
+                    .attr('opacity', 1)
+                    .attr('x', (a) => xScale(a.continentExp))
+                    .attr('width', xScale.bandwidth())
+
+                chart.selectAll('#limit').remove()
+                chart.selectAll('.divergence').remove()
+            })
+
+        barGroups
+            .append('text')
+            .attr('class', 'case_fatality_rate')
+            .attr('x', (a) => xScale(a.continentExp) + xScale.bandwidth() / 2)
+            .attr('y', (a) => yScale(a.case_fatality_rate) + 30)
+            .attr('text-anchor', 'middle')
+            .text((a) => `${a.case_fatality_rate}%`)
+        svg.append('text')
+            .attr('class', 'label')
+            .attr('x', -(height / 2) - margin)
+            .attr('y', margin / 2.4)
+            .attr('transform', 'rotate(-90)')
+            .attr('text-anchor', 'middle')
+            .text('Case fatality Rate (in %)')
+
+        svg.append('text')
+            .attr('class', 'label')
+            .attr('x', width / 2 + margin)
+            .attr('y', height + margin * 1.7)
+            .attr('text-anchor', 'middle')
+            .text('Continent')
+
+        svg.append('text')
+            .attr('class', 'title')
+            .attr('x', width / 2 + margin)
+            .attr('y', 40)
+            .attr('text-anchor', 'middle')
+            .style("text-decoration", "underline")
+            .text('How affected is Europe from the Coronavirus Pandemic compared to other continents?')
+    }
+    barGraph()
+</script>
+
+
+</body>
+</html>
+
+<!--Resources used while implementing my visualisations:
+https://www.d3-graph-gallery.com/graph/lollipop_button_data_csv.html
+https://chartio.com/resources/tutorials/how-to-show-data-on-mouseover-in-d3js/
+https://www.w3schools.com/css/css3_buttons.asp
+https://blog.risingstack.com/d3-js-tutorial-bar-charts-with-javascript/
+https://jsfiddle.net/matehu/w7h81xz2/
+-->
